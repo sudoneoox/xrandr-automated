@@ -1,0 +1,40 @@
+#!/bin/bash
+
+# Script to adjust brightness of dynamically identified monitors
+
+# Function to list monitors
+list_monitors() {
+    xrandr --query | grep " connected" | cut -d" " -f1
+}
+
+# Get all connected monitors into an array
+readarray -t MONITORS < <(list_monitors)
+
+# Check if no arguments or incorrect usage
+if [ $# -ne 2 ]; then
+    echo "Usage: $0 <monitor number> <brightness level>"
+    echo "Monitors connected:"
+    for i in "${!MONITORS[@]}"; do
+        echo "$((i+1))) ${MONITORS[i]}"
+    done
+    exit 1
+fi
+
+# Get monitor number and brightness level
+MONITOR_NUMBER=$1
+BRIGHTNESS_LEVEL=$2
+
+# Check if monitor number is valid
+if [ "$MONITOR_NUMBER" -le 0 ] || [ "$MONITOR_NUMBER" -gt "${#MONITORS[@]}" ]; then
+    echo "Invalid monitor number. Please choose a valid monitor:"
+    for i in "${!MONITORS[@]}"; do
+        echo "$((i+1))) ${MONITORS[i]}"
+    done
+    exit 1
+fi
+
+# Adjust the brightness
+MONITOR=${MONITORS[$((MONITOR_NUMBER-1))]}
+xrandr --output "$MONITOR" --brightness "$BRIGHTNESS_LEVEL"
+
+echo "Brightness of $MONITOR set to $BRIGHTNESS_LEVEL"
